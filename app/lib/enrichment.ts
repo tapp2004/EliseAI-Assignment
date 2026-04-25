@@ -2,6 +2,7 @@ import type { RawLead, EnrichedLead } from "@/app/types/lead";
 import { getCensusMarketData } from "@/app/lib/apis/census";
 import { getCompanyWikiSummary, getCityWikiSummary } from "@/app/lib/apis/wikipedia";
 import { getCompanyNews } from "@/app/lib/apis/newsapi";
+import { scoreLead } from "@/app/lib/scoring";
 
 export async function enrichLead(lead: RawLead): Promise<EnrichedLead> {
   const errors: string[] = [];
@@ -34,6 +35,8 @@ export async function enrichLead(lead: RawLead): Promise<EnrichedLead> {
   if (newsResult.status === "rejected")
     errors.push(`NewsAPI: ${newsResult.reason}`);
 
+  const score = scoreLead(marketData, news);
+
   return {
     ...lead,
     id: crypto.randomUUID(),
@@ -41,7 +44,7 @@ export async function enrichLead(lead: RawLead): Promise<EnrichedLead> {
     companyWiki,
     cityWiki,
     news,
-    score: { total: 0, tier: "Cold", factors: [], hasNewsBonus: false },
+    score,
     emailDraft: "",
     talkingPoints: [],
     enrichedAt: new Date().toISOString(),
