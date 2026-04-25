@@ -3,6 +3,7 @@ import { getCensusMarketData } from "@/app/lib/apis/census";
 import { getCompanyWikiSummary, getCityWikiSummary } from "@/app/lib/apis/wikipedia";
 import { getCompanyNews } from "@/app/lib/apis/newsapi";
 import { scoreLead } from "@/app/lib/scoring";
+import { generateEmail, generateTalkingPoints } from "@/app/lib/emailGenerator";
 
 export async function enrichLead(lead: RawLead): Promise<EnrichedLead> {
   const errors: string[] = [];
@@ -37,7 +38,8 @@ export async function enrichLead(lead: RawLead): Promise<EnrichedLead> {
 
   const score = scoreLead(marketData, news);
 
-  return {
+  // Build a partial lead to pass into the generators
+  const partial = {
     ...lead,
     id: crypto.randomUUID(),
     marketData,
@@ -50,4 +52,9 @@ export async function enrichLead(lead: RawLead): Promise<EnrichedLead> {
     enrichedAt: new Date().toISOString(),
     errors,
   };
+
+  const emailDraft = generateEmail(partial);
+  const talkingPoints = generateTalkingPoints(partial);
+
+  return { ...partial, emailDraft, talkingPoints };
 }
