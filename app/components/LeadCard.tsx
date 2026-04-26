@@ -36,7 +36,11 @@ export function LeadCard({ lead }: Props) {
           </TabsList>
 
           <TabsContent value="score">
-            <ScoreBreakdown score={lead.score} />
+            <ScoreBreakdown
+              score={lead.score}
+              cityName={`${lead.city}, ${lead.state}`}
+              hasMarketData={lead.marketData !== null}
+            />
           </TabsContent>
 
           <TabsContent value="insights">

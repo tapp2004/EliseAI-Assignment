@@ -1,5 +1,6 @@
 import type { ScoreResult } from "@/app/types/lead";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -13,6 +14,8 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   score: ScoreResult;
+  cityName?: string;
+  hasMarketData: boolean;
 }
 
 const TIER_BAR_COLOR = {
@@ -21,9 +24,16 @@ const TIER_BAR_COLOR = {
   Cold: "bg-slate-400",
 };
 
-export function ScoreBreakdown({ score }: Props) {
+export function ScoreBreakdown({ score, cityName, hasMarketData }: Props) {
   return (
     <div className="space-y-4">
+      {!hasMarketData && (
+        <Alert className="border-amber-200 bg-amber-50 text-amber-800">
+          <AlertDescription className="text-xs">
+            Census market data unavailable for {cityName ?? "this city"}. Market factors scored as 0 — only the news bonus applies.
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">

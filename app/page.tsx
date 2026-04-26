@@ -72,14 +72,26 @@ export default function Home() {
             {leads.length} lead{leads.length !== 1 ? "s" : ""} ready to enrich
           </p>
           <LeadsTable leads={leads} />
-          <div className="flex items-center gap-4">
-            <ProcessButton
-              onProcess={handleProcess}
-              isLoading={isProcessing}
-              disabled={isProcessing}
-              leadCount={leads.length}
-            />
-            {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-4">
+              <ProcessButton
+                onProcess={handleProcess}
+                isLoading={isProcessing}
+                disabled={isProcessing}
+                leadCount={leads.length}
+              />
+            </div>
+            {error && (
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-destructive">{error}</p>
+                <button
+                  onClick={() => { setError(null); handleProcess(); }}
+                  className="text-sm underline text-muted-foreground hover:text-foreground"
+                >
+                  Try again
+                </button>
+              </div>
+            )}
           </div>
         </section>
       )}
