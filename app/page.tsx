@@ -3,13 +3,45 @@
 import { useState } from "react";
 import { LeadUploader } from "@/app/components/LeadUploader";
 import { LeadsTable } from "@/app/components/LeadsTable";
-import type { RawLead } from "@/app/types/lead";
+import { ProcessButton } from "@/app/components/ProcessButton";
+import type { RawLead, EnrichedLead, EnrichResponse } from "@/app/types/lead";
 
 export default function Home() {
   const [leads, setLeads] = useState<RawLead[] | null>(null);
+  const [enrichedLeads, setEnrichedLeads] = useState<EnrichedLead[] | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function handleLeadsReady(parsed: RawLead[]) {
     setLeads(parsed);
+    setEnrichedLeads(null);
+    setError(null);
+  }
+
+  async function handleProcess() {
+    if (!leads || leads.length === 0) return;
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/enrich", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leads }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? `Request failed (${res.status})`);
+      }
+
+      const data: EnrichResponse = await res.json();
+      setEnrichedLeads(data.enrichedLeads);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   return (
@@ -27,12 +59,21 @@ export default function Home() {
 
       {leads && leads.length > 0 && (
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-muted-foreground">
-              Preview — {leads.length} lead{leads.length !== 1 ? "s" : ""} ready to enrich
-            </h2>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            {leads.length} lead{leads.length !== 1 ? "s" : ""} ready to enrich
+          </p>
           <LeadsTable leads={leads} />
+          <div className="flex items-center gap-4">
+            <ProcessButton
+              onProcess={handleProcess}
+              isLoading={isProcessing}
+              disabled={isProcessing}
+              leadCount={leads.length}
+            />
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+          </div>
         </section>
       )}
 
@@ -40,6 +81,17 @@ export default function Home() {
         <p className="text-sm text-muted-foreground text-center py-4">
           No valid leads found. Check the error messages above and re-upload.
         </p>
+      )}
+
+      {enrichedLeads && enrichedLeads.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold">
+            Results — {enrichedLeads.length} lead{enrichedLeads.length !== 1 ? "s" : ""} enriched
+          </h2>
+          <pre className="text-xs bg-muted p-4 rounded-md overflow-auto max-h-96">
+            {JSON.stringify(enrichedLeads, null, 2)}
+          </pre>
+        </section>
       )}
     </div>
   );
