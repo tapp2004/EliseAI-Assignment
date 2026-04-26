@@ -4,6 +4,9 @@ import { useState } from "react";
 import { LeadUploader } from "@/app/components/LeadUploader";
 import { LeadsTable } from "@/app/components/LeadsTable";
 import { ProcessButton } from "@/app/components/ProcessButton";
+import { LeadCard } from "@/app/components/LeadCard";
+import { LeadCardSkeleton } from "@/app/components/LeadCardSkeleton";
+import { Accordion } from "@/components/ui/accordion";
 import type { RawLead, EnrichedLead, EnrichResponse } from "@/app/types/lead";
 
 export default function Home() {
@@ -53,10 +56,12 @@ export default function Home() {
         </p>
       </div>
 
+      {/* Upload */}
       <section>
         <LeadUploader onLeadsReady={handleLeadsReady} />
       </section>
 
+      {/* Preview + Process */}
       {leads && leads.length > 0 && (
         <section className="space-y-4">
           <p className="text-sm text-muted-foreground">
@@ -70,9 +75,7 @@ export default function Home() {
               disabled={isProcessing}
               leadCount={leads.length}
             />
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
         </section>
       )}
@@ -83,14 +86,27 @@ export default function Home() {
         </p>
       )}
 
-      {enrichedLeads && enrichedLeads.length > 0 && (
+      {/* Skeletons while processing */}
+      {isProcessing && leads && (
+        <section className="space-y-2">
+          <h2 className="text-lg font-semibold">Enriching leads...</h2>
+          <div className="space-y-2">
+            {leads.map((_, i) => <LeadCardSkeleton key={i} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Results */}
+      {!isProcessing && enrichedLeads && enrichedLeads.length > 0 && (
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">
             Results — {enrichedLeads.length} lead{enrichedLeads.length !== 1 ? "s" : ""} enriched
           </h2>
-          <pre className="text-xs bg-muted p-4 rounded-md overflow-auto max-h-96">
-            {JSON.stringify(enrichedLeads, null, 2)}
-          </pre>
+          <Accordion className="space-y-2">
+            {enrichedLeads.map((lead) => (
+              <LeadCard key={lead.id} lead={lead} />
+            ))}
+          </Accordion>
         </section>
       )}
     </div>
