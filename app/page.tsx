@@ -7,6 +7,7 @@ import { ProcessButton } from "@/app/components/ProcessButton";
 import { LeadCard } from "@/app/components/LeadCard";
 import { LeadCardSkeleton } from "@/app/components/LeadCardSkeleton";
 import { Accordion } from "@/components/ui/accordion";
+import { SchedulePanel } from "@/app/components/SchedulePanel";
 import type { RawLead, EnrichedLead, EnrichResponse } from "@/app/types/lead";
 
 export default function Home() {
@@ -60,6 +61,9 @@ export default function Home() {
       <section>
         <LeadUploader onLeadsReady={handleLeadsReady} />
       </section>
+
+      {/* Scheduler status */}
+      <SchedulePanel />
 
       {/* Preview + Process */}
       {leads && leads.length > 0 && (
